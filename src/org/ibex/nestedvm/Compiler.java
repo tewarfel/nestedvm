@@ -1,5 +1,5 @@
 // Copyright 2000-2005 the Contributors, as shown in the revision logs.
-// Licensed under the Apache License 2.0 ("the License").
+// Licensed under the Apache Public Source License 2.0 ("the License").
 // You may not use this file except in compliance with the License.
 
 package org.ibex.nestedvm;
@@ -220,8 +220,8 @@ public abstract class Compiler implements Registers {
         if(symtab == null) throw new Exn("Binary has no symtab (did you strip it?)");
         ELF.Symbol sym;
         
-        userInfo = symtab.getGlobalSymbol("user_info");
-        gp = symtab.getGlobalSymbol("_gp");
+        userInfo = symtab.getSymbol("user_info");
+        gp = symtab.getSymbol("_gp");
         if(gp == null) throw new Exn("no _gp symbol (did you strip the binary?)");   
         
         if(pruneCases) {

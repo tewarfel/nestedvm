@@ -1,0 +1,14 @@
+*** src/org/ibex/nestedvm/support_aux.c~	2014-09-17 15:19:34.000000000 -0500
+--- src/org/ibex/nestedvm/support_aux.c	2014-10-22 15:03:43.028895171 -0500
+***************
+*** 949,952 ****
+--- 949,957 ----
+      ngroups = 32;
+      getgrouplist(uname, agroup, groups, &ngroups);
+      return (setgroups(ngroups, groups));
+  }
++ 
++ int
++ _isatty_r(struct _reent *ptr, int fd)
++ { return isatty(fd);
++ }
