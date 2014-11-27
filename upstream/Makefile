@@ -35,7 +35,7 @@ tasks/everything: \
 
 git_gcclass = http://git.megacz.com/org.ibex.gcclass.git
 
-git_classgen = https://github.com/tewarfel/nestedvm.git
+git_classgen = https://github.com/tewarfel/classgen.git
 #git_classgen = http://git.megacz.com/org.ibex.classgen.git
 
 cross_root := $(usr)/mips-unknown-elf
