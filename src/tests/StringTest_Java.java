@@ -3,7 +3,7 @@
 // pairs with StringTest_C.c to demonstrate a way of passing ints and strings back and forth between C and Java code
 // via the call_java() interface
 
-package test;
+package tests;
 
 import org.ibex.nestedvm.Runtime;
 import java.io.*;

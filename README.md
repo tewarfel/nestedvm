@@ -1,14 +1,17 @@
 nestedvm, ported to OSX 10.9, using gcc 4.9.3 and Java 1.8
 ========
 
-11/26/2014
-Clone of NestedVM repository, integrating multiple changes since 2009.
+11/27/2014
+Yet another fork of NestedVM from nestedvm.ibex.org.  This fork integrates multiple patches and additions since 2009,
 This version has been modified to build on OSX 10.9.5 (Mavericks) using the Xcode 6.1 compiler and Homebrew.
-The gcc built is 4.8.2, and uses newlib-1.20
+The gcc built is 4.8.2, and uses newlib-1.20.  Classgen is pulled by git, and presently points at github.com/tewarfel/classgen.git
+so that it builds under Java 1.8.
 
-Thanks to Henry Wertz for his recent set of extensive patch, and well as the many prior contributors before.
+Thanks to Brian Alliet and Adam Megacz for their creation and for making it public, and most recently to Henry Wertz for his 
+recent set of extensive patches for gcc 4.8 + newlib-1.20 support and email assistance getting them to work.
 
-Steps to build:
+
+Building NestedVM under OSX 10.9:
 
 1) Install Xcode from the app store and download all updates 
 
@@ -23,23 +26,35 @@ Steps to build:
 
 6) brew install git gmp mpc libmpc mpfr cmake autoconf
 
-7) create a .gitconfig file in your home directory
+7) If you have not used "git" before, create a .gitconfig file in your home directory.  See 
+  http://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup
 
-8) install Java JDK (not just runtime), I used 8u25 for testing.
+8) install Java JDK (not just runtime) from www.oracle.com/technetwork/java/javase/downloads/ ; I have tested Java 1.8u25 successfully.
 
 9) log out and reboot
 
-10) verify that “java –version” returns Java 8 and not a message about installing 
-version 6.  If not, re-install JDK and reboot.
+10) verify that “java –version” returns Java 1.8.
+If not, try re-installing the JDK and reboot.  For reasons I don't fully understand, if I have a  default Mavericks installation,
+I have to actually reboot after installation before the soft links pointing to the new java are visible.  
+Once the first install is rebooted, subsequent upgrades are immediately visible. YMMV.
 
 11) git clone  https://github.com/tewarfel/nestedvm.git .    into your local directory.
 
-12) in the directory, type "make", then "make nestedvm.jar"
+12) cd to the install directory, type "make", then go get some coffee.  It takes awhile to download and compile all the pieces.
+
+13)  Once the first "make" completes, type "make nestedvm.jar"
+
+14) Verify with "make test", "make calltest", "make stringtest", etc. 
 
 
-Classgen java source files were modified to compile cleanly under Java 1.8.  I'll eventually split that out as it's own git
-	
-12) New test file showing one method of passing strings from a C program to Java and back.
+Notes: 
+I had some initial difficulty building GCC with, with an error message "cannot find liblto_plugin.so" 
+being caused by old remants of prior gcc builds.  I uninstalled all prior homebrew gcc/gcc-related stuff, delete the configuration caches,
+build directory contents, and the build file tokens in the upstream/tasks/ directory, and then did a "make clean", followed by "make".
+Once I had all the old gcc stuff cleaned out, it would build.  
+
+Makefile and upstream/Makefile both contain lines specifying Java version 1.8.  If you have the 1.7 JDK installed, you can use that as well, just change the 1.8 to 1.7 in both places.
+
 
  -Tom
 
