@@ -243,7 +243,7 @@ public class JavaSourceCompiler extends Compiler {
         endOfMethod = startOfMethod = 0;
     }
     
-    private HashMap relativeAddrs = new HashMap();  
+    private HashMap<Integer,Boolean> relativeAddrs = new HashMap<Integer,Boolean>();  
     private String constant(int target) {
         if(target >= 4096 && lessConstants) {
             int n = target & ~1023;

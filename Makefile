@@ -315,6 +315,10 @@ Simple_LDFLAGS = -nostdlib
 simpletest: build/tests/Simple.class
 	$(JAVA) -cp build tests.Simple
 
+# StringTest - demonstrates passing ints and strings back and forth from C to Java 
+stringtest: build/tests/StringTest_C.class build/tests/StringTest_Java.class
+	$(JAVA) -cp build tests.StringTest_Java
+
 # Paranoia
 Paranoia_CFLAGS = "-Wno-error"
 Paranoia_LDFLAGS = -lm

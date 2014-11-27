@@ -151,7 +151,7 @@ public abstract class Platform {
         
         File[] _listRoots() {
             String[] rootProps = new String[]{"java.home","java.class.path","java.library.path","java.io.tmpdir","java.ext.dirs","user.home","user.dir" };
-            Hashtable known = new Hashtable();
+            Hashtable<File,Boolean> known = new Hashtable<File,Boolean>();
             for(int i=0;i<rootProps.length;i++) {
                 String prop = getProperty(rootProps[i]);
                 if(prop == null) continue;

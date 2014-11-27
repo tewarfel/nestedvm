@@ -85,7 +85,7 @@ public abstract class Compiler implements Registers {
     }
     
     /** A set of all addresses that can be jumped too (only available if pruneCases == true) */
-    Hashtable jumpableAddresses;
+    Hashtable<Integer,Boolean> jumpableAddresses;
     
     /** Some important symbols */
     ELF.Symbol userInfo, gp;
@@ -226,7 +226,7 @@ public abstract class Compiler implements Registers {
         
         if(pruneCases) {
             // Find all possible branches
-            jumpableAddresses = new Hashtable();
+            jumpableAddresses = new Hashtable<Integer,Boolean>();
             
             jumpableAddresses.put(new Integer(elf.header.entry),Boolean.TRUE);
             
@@ -259,7 +259,7 @@ public abstract class Compiler implements Registers {
         _go();
     }
     
-    private void findBranchesInSymtab(ELF.Symtab symtab, Hashtable jumps) {
+    private void findBranchesInSymtab(ELF.Symtab symtab, Hashtable<Integer,Boolean> jumps) {
         ELF.Symbol[] symbols = symtab.symbols;
         int n=0;
         for(int i=0;i<symbols.length;i++) {
@@ -274,7 +274,7 @@ public abstract class Compiler implements Registers {
         if(printStats) System.err.println("Found " + n + " additional possible branch targets in Symtab");
     }
     
-    private void findBranchesInText(int base, DataInputStream dis, int size, Hashtable jumps) throws IOException {
+    private void findBranchesInText(int base, DataInputStream dis, int size, Hashtable<Integer,Boolean> jumps) throws IOException {
         int count = size/4;
         int pc = base;
         int n=0;
@@ -361,7 +361,7 @@ public abstract class Compiler implements Registers {
         if(printStats) System.err.println("Found " + n + " additional possible branch targets in Text segment");
     }
     
-    private void findBranchesInData(DataInputStream dis, int size, Hashtable jumps, int textStart, int textEnd) throws IOException {
+    private void findBranchesInData(DataInputStream dis, int size, Hashtable<Integer,Boolean> jumps, int textStart, int textEnd) throws IOException {
         int count = size/4;
         int n=0;
         for(int i=0;i<count;i++) {
