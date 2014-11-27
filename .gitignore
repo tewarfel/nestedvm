@@ -1,9 +1,5 @@
 upstream/tasks/*
-upstream/build/binutils*
-upstream/build/gcc*
-upstream/build/newlib*
-upstream/build/openbsdglob*
-upstream/build/regex*
+upstream/build/*
 upstream/download
 upstream/install
 **/.DS_Store
