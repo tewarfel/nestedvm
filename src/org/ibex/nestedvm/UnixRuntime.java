@@ -1,5 +1,5 @@
 // Copyright 2000-2005 the Contributors, as shown in the revision logs.
-// Licensed under the Apache License 2.0 ("the License").
+// Licensed under the Apache Public Source License 2.0 ("the License").
 // You may not use this file except in compliance with the License.
 
 package org.ibex.nestedvm;
@@ -34,8 +34,8 @@ public abstract class UnixRuntime extends Runtime implements Cloneable {
     private UnixRuntime execedRuntime;
 
     private Object children; // used only for synchronizatin
-    private Vector activeChildren;
-    private Vector exitedChildren;
+    private Vector<UnixRuntime> activeChildren;
+    private Vector<UnixRuntime> exitedChildren;
     
     protected UnixRuntime(int pageSize, int totalPages) { this(pageSize,totalPages,false); }
     protected UnixRuntime(int pageSize, int totalPages, boolean exec) {
@@ -141,7 +141,7 @@ public abstract class UnixRuntime extends Runtime implements Cloneable {
             case SYS_resolve_hostname: return sys_resolve_hostname(a,b,c);
             case SYS_setsockopt: return sys_setsockopt(a,b,c,d,e);
             case SYS_getsockopt: return sys_getsockopt(a,b,c,d,e);
-            case SYS_bind: return sys_bind(a,b,c);
+	    case SYS_bind: return sys_bind(a,b,c);
             case SYS_listen: return sys_listen(a,b);
             case SYS_accept: return sys_accept(a,b,c);
             case SYS_shutdown: return sys_shutdown(a,b);
@@ -344,8 +344,8 @@ public abstract class UnixRuntime extends Runtime implements Cloneable {
         //System.err.println("fork " + pid + " -> " + r.pid + " tasks[" + r.pid + "] = " + gd.tasks[r.pid]);
         if(children == null) {
             children = new Object();
-            activeChildren = new Vector();
-            exitedChildren = new Vector();
+            activeChildren = new Vector<UnixRuntime>();
+            exitedChildren = new Vector<UnixRuntime>();
         }
         activeChildren.addElement(r);
         
@@ -531,7 +531,7 @@ public abstract class UnixRuntime extends Runtime implements Cloneable {
         return exec(command[0],newArgv,envp);
     }
     
-    public int execClass(Class c,String[] argv, String[] envp) {
+    public int execClass(Class<?> c,String[] argv, String[] envp) {
         try {
             UnixRuntime r = (UnixRuntime) c.getDeclaredConstructor(new Class[]{Boolean.TYPE}).newInstance(new Object[]{Boolean.TRUE});
             return exec(r,argv,envp);
@@ -894,11 +894,24 @@ public abstract class UnixRuntime extends Runtime implements Cloneable {
         
         private static final byte[] EMPTY = new byte[0];
         public SocketFD(int type) {
-        	flags = type;
+       		flags = type;
         	if(type == TYPE_DGRAM)
         		dp = new DatagramPacket(EMPTY,0);
         }
-        
+       
+	public SocketAddress getLocalSocketAddress() {
+	   int type = type();
+	   if(type == SocketFD.TYPE_STREAM) {
+              if(listen()) {
+		  return ss.getLocalSocketAddress();
+              } else {
+		  return s.getLocalSocketAddress();
+	      }
+	   } else {
+	      return ds.getLocalSocketAddress();
+	   }
+	}
+       	
         public void setOptions() {
             try {
                 if(s != null && type() == TYPE_STREAM && !listen()) {
@@ -1113,7 +1126,9 @@ public abstract class UnixRuntime extends Runtime implements Cloneable {
                 return -ENOPROTOOPT;
         } 
     }
-    
+   
+
+
     private int sys_bind(int fdn, int addr, int namelen) throws FaultException, ErrnoException {
         SocketFD fd = getSocketFD(fdn);
         
@@ -1322,7 +1337,7 @@ public abstract class UnixRuntime extends Runtime implements Cloneable {
     }
     
     public static final class GlobalState {
-        Hashtable execCache = new Hashtable();
+        Hashtable<String,GlobalState.CacheEnt> execCache = new Hashtable<String,GlobalState.CacheEnt>();
         
         final UnixRuntime[] tasks;
         int nextPID = 1;

@@ -10,7 +10,7 @@ tasks/everything: \
 	tasks/build_regex \
 	tasks/build_openbsdglob \
 	tasks/build_zlib \
-	tasks/build_libpng \
+        tasks/build_libpng \
 	tasks/build_libiconv \
 	tasks/build_gd \
 	tasks/build_expat \
@@ -33,10 +33,11 @@ tasks/everything: \
 	tasks/build_linpack \
 
 
-darcs_gcclass = http://gcclass.ibex.org/
-darcs_classgen = http://classgen.ibex.org/
-git_gcclass = http://gcclass.ibex.org/.git/
-git_classgen = http://classgen.ibex.org/.git/
+git_gcclass = http://git.megacz.com/org.ibex.gcclass.git
+
+git_classgen = https://github.com/tewarfel/classgen.git
+#git_classgen = http://git.megacz.com/org.ibex.classgen.git
+
 cross_root := $(usr)/mips-unknown-elf
 .SECONDARY: # This is broken in gmake < 3.79.1
 
@@ -81,30 +82,6 @@ tasks/extract_%: tasks/download_%
 		ln -s $*-$(version_$*) $*
 	touch $@
 
-tasks/extract_darcs_%:
-	if [ -e $@ ]; then echo "Error: $@ exists. something isn't right"; false; else true; fi
-	mkdir -p build
-	if [ -z "$(darcs_$*)" ]; then echo "No darcs url for $*" >&2; false; fi
-	if [ -d "$(root)/_darcs" ]; then \
-		cd build && darcs get --repo-name="$*" --verbose "$(darcs_$*)"; \
-	else \
-		mkdir -p "build/" && cd "build/"; \
-		darcs get --repo-name=$* $(darcs_$*); \
-	fi
-	touch $@
-
-update_darcs_%: tasks/extract_darcs_%
-	if [ -d "build/$*/_darcs" ]; then \
-		cd "build/$*" && darcs pull; \
-	else \
-		cd "build/$*" && darcs get $(darcs_$*); \
-	fi
-	rm -f "tasks/build_darcs_$*" # to force a rebuild
-
-tasks/build_darcs_%: tasks/extract_darcs_%
-	cd "build/$*" && $(MAKE)
-	touch $@
-
 tasks/extract_git_%:
 	if [ -e $@ ]; then echo "Error: $@ exists. something isn't right"; false; else true; fi
 	mkdir -p build
@@ -113,7 +90,7 @@ tasks/extract_git_%:
 		cd build && git clone "$(git_$*)" "$*"; \
 	else \
 		mkdir -p "build/" && cd "build/"; \
-		git clone $(darcs_$*) $*; \
+		git clone $(git_$*) $*; \
 	fi
 	touch $@
 
@@ -128,6 +105,7 @@ update_git_%: tasks/extract_git_%
 tasks/build_git_%: tasks/extract_git_%
 	cd "build/$*" && $(MAKE)
 	touch $@
+
 
 clean_%:
 	rm -rf "build/$(*)"*
@@ -155,28 +133,29 @@ tasks/build_%: tasks/patch_%
 
 ## gcc ##############################################################################
 
-version_gcc = 3.3.6
+version_gcc = 4.8.3
 
+url_gcc-all = http://mirrors.kernel.org/gnu/gcc/gcc-$(version_gcc)/gcc-$(version_gcc).tar.gz
 url_gcc-core = http://mirrors.kernel.org/gnu/gcc/gcc-$(version_gcc)/gcc-core-$(version_gcc).tar.gz
 url_gcc-c++ = http://mirrors.kernel.org/gnu/gcc/gcc-$(version_gcc)/gcc-g++-$(version_gcc).tar.gz
 url_gcc-g77 = http://mirrors.kernel.org/gnu/gcc/gcc-$(version_gcc)/gcc-g77-$(version_gcc).tar.gz
 
-patches_gcc = gcc-fixes.patch gcc-fdata-sections-bss.patch gcc-64bitclean.patch gcc-with-newer-version.patch
+#patches_gcc = gcc-fixes.patch gcc-fdata-sections-bss.patch gcc-64bitclean.patch gcc-with-new-version.patch
+patches_gcc = gcc.patch
 
-configure_gcc = --target=mips-unknown-elf --disable-threads --with-gnu-ld --with-gnu-as --with-newlib=yes --enable-sjlj-exceptions --enable-languages="c"
+configure_gcc = --target=mips-unknown-elf --disable-threads --disable-libssp --with-gnu-ld --with-gnu-as --with-newlib=yes --enable-sjlj-exceptions --enable-languages="c" --with-gmp=/usr/local/Cellar/gmp/6.0.0a --with-mpfr=/usr/local/Cellar/mpfr/3.1.2-p10 --with-mpc=/usr/local/Cellar/libmpc/1.0.2
+
 configure_gcc_step2 = $(configure_gcc) --enable-languages="c,c++,f77"
 
 tasks/build_gcc: tasks/build_linker
 
-tasks/download_gcc: tasks/download_gcc-core tasks/download_gcc-c++ tasks/download_gcc-g77
+tasks/download_gcc: tasks/download_gcc-all
 	touch $@
 
 tasks/extract_gcc: tasks/download_gcc
 	if [ -e $@ ]; then echo "Error: $@ exists. something isn't right"; false; else true; fi
 	mkdir -p build
-	cd build && gzip -dc ../download/gcc-core-$(version_gcc).tar.gz | $(TAR) -xf -
-	cd build && gzip -dc ../download/gcc-g++-$(version_gcc).tar.gz | $(TAR) -xf -
-	cd build && gzip -dc ../download/gcc-g77-$(version_gcc).tar.gz | $(TAR) -xf -
+	cd build && gzip -dc ../download/gcc-$(version_gcc).tar.gz | $(TAR) -xf -
 	touch $@
 
 tasks/build_gcc_step2: tasks/patch_gcc tasks/build_libc
@@ -224,16 +203,16 @@ tasks/build_gpc: tasks/patch_gpc tasks/build_libc
 
 ## binutils ##############################################################################
 
-version_binutils = 2.14
+version_binutils = 2.24
 url_binutils = ftp://ftp.gnu.org/gnu/binutils/binutils-$(version_binutils).tar.gz
-patches_binutils = binutils-no64.patch binutils-nocompilein.patch
-configure_binutils = --target=mips-unknown-elf
+patches_binutils = binutils.patch 
+configure_binutils = --target=mips-unknown-elf --disable-werror
 
 ## newlib ##############################################################################
 
-version_newlib = 1.11.0
+version_newlib = 1.20.0
 url_newlib = ftp://sources.redhat.com/pub/newlib/newlib-$(version_newlib).tar.gz
-patches_newlib = newlib-mips.patch newlib-tzset.patch newlib-malloc.patch newlib-nomemcpy.patch newlib-unix.patch newlib-unistd.patch newlib-nestedvm-define.patch
+patches_newlib = newlib-mips.patch newlib-tzset.patch newlib-malloc.patch newlib-nomemcpy.patch newlib-unix.patch newlib-unistd.patch newlib-nestedvm-define.patch newlib-sdata.patch newlib-new.patch
 configure_newlib = --enable-multilib --target=mips-unknown-elf
 
 tasks/build_newlib: tasks/build_gcc
@@ -278,38 +257,39 @@ url_linpack = http://www.math.iastate.edu/burkardt/f_src/linpack_bench/linpack_b
 
 ## zlib ##############################################################################
 
-version_zlib = 1.2.7
+version_zlib = 1.2.8
 url_zlib = http://www.zlib.net/zlib-$(version_zlib).tar.gz
-configure_zlib = --static
 
 tasks/build_zlib: tasks/patch_zlib
 	mkdir -p $(usr)
+	configure_zlib = --static
 	cd build/zlib-$(version_zlib) && \
-		AR=mips-unknown-elf-ar CC=mips-unknown-elf-gcc ./configure --prefix=$(usr) $(configure_zlib) && \
+		AR=mips-unknown-elf-ar  CC=mips-unknown-elf-gcc ./configure --prefix=$(usr) $(configure_zlib) && \
 		$(MAKE) TARGET_CFLAGS="$(MIPS_CFLAGS)" && \
 		$(MAKE) install
 	touch $@
 
-## libpng ##############################################################################
 
+## libpng ##############################################################################
+ 
 version_libpng = 1.5.10
 url_libpng = $(sourceforge)libpng/libpng-$(version_libpng).tar.gz
 configure_libpng = --disable-shared --host=mips-unknown-elf
-
+ 
 tasks/build_libpng: tasks/build_zlib tasks/patch_libpng tasks/build_libc
 	mkdir -p $(usr)
 	cd build/libpng-$(version_libpng) && \
-		CPPFLAGS=-I$(usr)/include LDFLAGS=-L$(usr)/lib ./configure --prefix=$(usr) $(configure_libpng) && \
+	CPPFLAGS=-I$(usr)/include LDFLAGS=-L$(usr)/lib ./configure --prefix=$(usr) $(configure_libpng) && \
 		$(MAKE) TARGET_CFLAGS="$(MIPS_CFLAGS)" && \
 		$(MAKE) install
 	touch $@
-
+ 
 ## libiconv ##############################################################################
-
+ 
 version_libiconv = 1.14
 url_libiconv = http://ftp.gnu.org/gnu/libiconv/libiconv-$(version_libiconv).tar.gz
 configure_libiconv = --disable-shared --host=mips-unknown-elf
-
+ 
 tasks/build_libiconv: tasks/patch_libiconv tasks/build_libc
 	mkdir -p $(usr)
 	cd build/libiconv-$(version_libiconv) && \
@@ -319,21 +299,21 @@ tasks/build_libiconv: tasks/patch_libiconv tasks/build_libc
 	touch $@
 
 ## gd ##############################################################################
-
+ 
 version_gd = 2.0.35
-url_gd = http://www.chipsnbytes.net/downloads/gd-$(version_gd).tar.gz
+#url_gd = http://www.chipsnbytes.net/downloads/gd-$(version_gd).tar.gz
+url_gd = http://www.google-desktop-for-linux-mirror.googlecode.com/files/gd-$(version_gd).tar.gz
 configure_gd = --disable-shared --host=mips-unknown-elf
-
+ 
 tasks/build_gd: tasks/build_freetype tasks/patch_gd tasks/build_libc
 	mkdir -p $(usr)
 	cd build/gd-$(version_gd) && \
 		CPPFLAGS=-I$(usr)/include/freetype2 LDFLAGS=-L$(usr)/lib ./configure --prefix=$(usr) $(configure_gd) && \
-		$(MAKE) TARGET_CFLAGS="$(MIPS_CFLAGS)" && \
+	 	$(MAKE) TARGET_CFLAGS="$(MIPS_CFLAGS)" && \
 		$(MAKE) install
 	touch $@
 
-
-## expat ##############################################################################
+# expat ##############################################################################
 
 version_expat = 2.0.0
 url_expat = $(sourceforge)expat/expat-$(version_expat).tar.gz
@@ -367,7 +347,6 @@ tasks/build_libc: tasks/build_newlib tasks/build_extraheaders tasks/build_regex 
 	mips-unknown-elf-ar sr $(cross_root)/lib/single-float/libc.a $(patsubst %,../build/org/ibex/nestedvm/%.o, support support_aux)
 	rm -f $(cross_root)/lib/crt0.o
 	cp $(root)/build/org/ibex/nestedvm/crt0.o $(cross_root)/lib/crt0.o
-
 	touch $@
 
 tasks/build_linker: tasks/build_binutils $(root)/src/org/ibex/nestedvm/linker.ld
@@ -376,6 +355,7 @@ tasks/build_linker: tasks/build_binutils $(root)/src/org/ibex/nestedvm/linker.ld
 		rm -f "$$f"; \
 		ln -s nestedvm.ld "$$f"; \
 	done
+	cp $(upstream)/misc/crt0-override.spec $(cross_root)/lib/crt0-override.spec
 	touch $@
 
 
@@ -384,7 +364,7 @@ tasks/build_linker: tasks/build_binutils $(root)/src/org/ibex/nestedvm/linker.ld
 
 ## libjpeg ##############################################################################
 
-version_libjpeg = 7
+version_libjpeg = 7 
 url_libjpeg = http://www.ijg.org/files/jpegsrc.v$(version_libjpeg).tar.gz
 
 tasks/extract_libjpeg: tasks/download_libjpeg
@@ -447,9 +427,10 @@ tasks/build_freetype: tasks/patch_freetype tasks/build_libc
 
 ## boehm-gc ##############################################################################
 
-version_boehmgc = 6.3alpha2
-#url_boehmgc = http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc$(version_boehmgc).tar.gz
-url_boehmgc = http://nestedvm.ibex.org/upstream/gc$(version_boehmgc).tar.gz
+#version_boehmgc = 6.3alpha2
+version_boehmgc = 6.3alpha5
+url_boehmgc = http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc$(version_boehmgc).tar.gz
+#url_boehmgc = http://nestedvm.ibex.org/upstream/gc$(version_boehmgc).tar.gz
 patches_boehmgc = boehm-gc.patch
 
 tasks/extract_boehmgc: tasks/download_boehmgc
@@ -521,7 +502,8 @@ tasks/build_tex: tasks/build_tex_tangle tasks/build_gpc tasks/download_texinputs
 ## samba ##############################################################################
 
 version_samba = 3.0.4
-url_samba = http://us1.samba.org/samba/ftp/old-versions/samba-$(version_samba).tar.gz
+#url_samba = http://us1.samba.org/samba/ftp/old-versions/samba-$(version_samba).tar.gz
+url_samba = http://www.samba.org/samba/ftp/stable/samba-$(version_samba).tar.gz
 patches_samba = samba.patch
 
 tasks/build_samba: tasks/patch_samba

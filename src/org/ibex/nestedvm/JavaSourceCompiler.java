@@ -1,5 +1,5 @@
 // Copyright 2000-2005 the Contributors, as shown in the revision logs.
-// Licensed under the Apache License 2.0 ("the License").
+// Licensed under the Apache Public Source License 2.0 ("the License").
 // You may not use this file except in compliance with the License.
 
 package org.ibex.nestedvm;
@@ -243,7 +243,7 @@ public class JavaSourceCompiler extends Compiler {
         endOfMethod = startOfMethod = 0;
     }
     
-    private HashMap relativeAddrs = new HashMap();  
+    private HashMap<Integer,Boolean> relativeAddrs = new HashMap<Integer,Boolean>();  
     private String constant(int target) {
         if(target >= 4096 && lessConstants) {
             int n = target & ~1023;

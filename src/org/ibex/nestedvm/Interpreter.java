@@ -1,5 +1,5 @@
 // Copyright 2000-2005 the Contributors, as shown in the revision logs.
-// Licensed under the Apache License 2.0 ("the License").
+// Licensed under the Apache Public Source License 2.0 ("the License").
 // You may not use this file except in compliance with the License.
 
 // Copyright 2003 Brian Alliet
@@ -650,7 +650,7 @@ public class Interpreter extends UnixRuntime implements Cloneable {
     }
     
     public int lookupSymbol(String name) {
-        ELF.Symbol sym = symtab.getGlobalSymbol(name);
+        ELF.Symbol sym = symtab.getSymbol(name);
         return sym == null ? -1 : sym.addr;
     }
     
@@ -680,8 +680,8 @@ public class Interpreter extends UnixRuntime implements Cloneable {
         
         ELF.Symtab symtab = elf.getSymtab();
         if(symtab == null) throw new IOException("No symtab in binary (did you strip it?)");
-        userInfo = symtab.getGlobalSymbol("user_info");
-        ELF.Symbol gpsym = symtab.getGlobalSymbol("_gp");
+        userInfo = symtab.getSymbol("user_info");
+        ELF.Symbol gpsym = symtab.getSymbol("_gp");
         
         if(gpsym == null) throw new IOException("NO _gp symbol!");
         gp = gpsym.addr;
@@ -749,7 +749,7 @@ public class Interpreter extends UnixRuntime implements Cloneable {
     
     // Debug functions
     // NOTE: This probably requires a jdk > 1.1, however, it is only used for debugging
-    private java.util.HashMap sourceLineCache;
+    private java.util.HashMap<Integer,String> sourceLineCache;
     public String sourceLine(int pc) {
         final String addr2line = "mips-unknown-elf-addr2line";
         String line = (String) (sourceLineCache == null ? null : sourceLineCache.get(new Integer(pc)));
@@ -760,7 +760,7 @@ public class Interpreter extends UnixRuntime implements Cloneable {
             line = new BufferedReader(new InputStreamReader(p.getInputStream())).readLine();
             if(line == null) return null;
             while(line.startsWith("../")) line = line.substring(3);
-            if(sourceLineCache == null) sourceLineCache = new java.util.HashMap();
+            if(sourceLineCache == null) sourceLineCache = new java.util.HashMap<Integer,String>();
             sourceLineCache.put(new Integer(pc),line);
             return line;
         } catch(IOException e) {

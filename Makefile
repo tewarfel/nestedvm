@@ -4,6 +4,21 @@
 # What to build
 #
 
+mips2java_root = $(shell pwd)
+build = $(mips2java_root)/build
+
+root = $(shell dirname "`pwd`")
+upstream = $(shell pwd)/upstream
+usr = $(upstream)/install
+cross_root := $(usr)/mips-unknown-elf
+
+MIPS_CC =    $(usr)/bin/mips-unknown-elf-gcc
+MIPS_CXX =   $(usr)/bin/mips-unknown-elf-g++
+MIPS_G77 =   $(usr)/bin/mips-unknown-elf-g77
+MIPS_PC =    $(usr)/bin/mips-unknown-elf-gpc
+MIPS_LD =    $(usr)/bin/mips-unknown-elf-gcc
+MIPS_STRIP = $(usr)/bin/mips-unknown-elf-strip
+
 # Java sources that are part of the compiler/interpreter
 java_sources = $(wildcard src/org/ibex/nestedvm/*.java) $(wildcard src/org/ibex/nestedvm/util/*.java)
 
@@ -11,18 +26,12 @@ java_sources = $(wildcard src/org/ibex/nestedvm/*.java) $(wildcard src/org/ibex/
 mips_sources = crt0.c support_aux.c
 mips_asm_sources = support.s
 
-mips2java_root = $(shell pwd)
-build = $(mips2java_root)/build
 tasks = upstream/tasks
 
 #
 # MIPS Settings (don't change these)
 #
-flags = -march=mips1
-MIPS_CC = mips-unknown-elf-gcc
-MIPS_CXX = mips-unknown-elf-g++
-MIPS_G77 = mips-unknown-elf-g77
-MIPS_PC = mips-unknown-elf-gpc
+flags = -march=mips1 -specs=$(cross_root)/lib/crt0-override.spec
 
 # Be VERY careful about changing any of these as they can break binary 
 # compatibility and create hard to find bugs
@@ -32,18 +41,16 @@ mips_optflags = -O3 \
 	-falign-functions=512 \
 	-fno-rename-registers \
 	-fno-schedule-insns \
-	-fno-delayed-branch \
-	-freduce-all-givs
+	-fno-delayed-branch 
 
-MIPS_CFLAGS = $(mips_optflags) $(flags) -I. -Wall -Wno-unused -Werror
+
+MIPS_CFLAGS = $(mips_optflags) $(flags) -I. -Wall -Wno-unused 
 MIPS_CXXFLAGS = $(MIPS_CFLAGS)
 MIPS_PCFLAGS = $(MIPS_CFLAGS) --big-endian
-MIPS_LD = mips-unknown-elf-gcc
 MIPS_LDFLAGS= $(flags) --static -Wl,--gc-sections
-MIPS_STRIP = mips-unknown-elf-strip
 
 # Java compiler/VM settings
-JAVAC = javac -source 1.3 -target 1.3
+JAVAC = javac -source 1.8 -target 1.8 -Xlint:unchecked
 JAVA = java
 ifeq ($(firstword $(JAVAC)),gcj)
 	JAVAC_NODEBUG_FLAGS = -g0
@@ -308,6 +315,10 @@ Simple_LDFLAGS = -nostdlib
 simpletest: build/tests/Simple.class
 	$(JAVA) -cp build tests.Simple
 
+# StringTest - demonstrates passing ints and strings back and forth from C to Java 
+stringtest: build/tests/StringTest_C.class build/tests/StringTest_Java.class
+	$(JAVA) -cp build tests.StringTest_Java
+
 # Paranoia
 Paranoia_CFLAGS = "-Wno-error"
 Paranoia_LDFLAGS = -lm
@@ -325,7 +336,7 @@ linpacktest: build/tests/Linpack.class
 #
 # Freetype Stuff
 #
-FreeType_CFLAGS = -Iupstream/build/freetype/include
+FreeType_CFLAGS = -Iupstream/build/freetype/include -specs=$(cross_root)/lib/crt0-override.spec
 FreeType_LDFLAGS =  -Lupstream/build/freetype/objs -lfreetype
 
 FreeTypeDemoHelper_CFLAGS = $(FreeType_CFLAGS)
@@ -359,6 +370,7 @@ build/tests/Echo.class: build/tests/EchoHelper.class
 # Libjpeg
 #
 DJpeg_COMPILERFLAGS = -o onepage,pagesize=8m
+
 build/tests/DJpeg.mips: $(tasks)/build_libjpeg
 	@mkdir -p `dirname $@`
 	cp upstream/build/libjpeg/djpeg $@
@@ -448,7 +460,8 @@ mspackspeedtest: build/tests/SpeedTest.class build/tests/MSPackBench.class
 		echo "Run \"make check\" to get the MS True Type fonts for the MSPackBench test"; \
 	fi
 
-speedtest: build/tests/SpeedTest.class build/tests/DJpeg.class build/tests/FTBench.class tmp/thebride_1280.jpg build/tests/MSPackBench.class
+speedtest: build/tests/SpeedTest.class build/tests/DJpeg.class build/tests/FTBench.class tmp/thebride_1280.jpg 
+##build/tests/MSPackBench.class
 	@echo "Running DJpeg test..."
 	@$(JAVA) -cp build tests.SpeedTest tests.DJpeg 10 -targa -outfile tmp/thebride_1280.tga tmp/thebride_1280.jpg
 	@if [ -e tmp/mspack/Comic.TTF ]; then \
