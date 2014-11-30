@@ -44,7 +44,7 @@ Once the first install is rebooted, subsequent upgrades are immediately visible.
 
 12) cd to the install directory, type "make", then go get some coffee.  It takes awhile to download and compile all the pieces.
 
-13)  Once the first "make" completes, type "make nestedvm.jar"
+13) Once the first "make" completes, type "make nestedvm.jar"
 
 14) Verify with "make test", "make calltest", "make stringtest", etc. 
 
