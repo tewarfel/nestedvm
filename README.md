@@ -53,9 +53,10 @@ being caused by old remants of prior gcc builds.  I uninstalled all prior homebr
 build directory contents, and the build file tokens in the upstream/tasks/ directory, and then did a "make clean", followed by "make".
 Once I had all the old gcc stuff cleaned out, it would build.  
 
-Makefile and upstream/Makefile both contain lines specifying Java version 1.8.  If you have the 1.7 JDK installed, you can use that as well, just change the 1.8 to 1.7 in both places.
+Makefile and upstream/Makefile both contain lines specifying Java version 1.8.  If you have the 1.7 JDK installed, 
+you can use that as well, just change the 1.8 to 1.7 in both places.
 
-
+This has also been built and runs under Yosemite (OSX 10.10)
  -Tom
 
 
