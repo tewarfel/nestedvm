@@ -1,8 +1,7 @@
 // Copyright 2003 Adam Megacz, see the COPYING file for licensing [GPL]
 
 #include <unistd.h>
-#include <ft2build.h>
-#include FT_FREETYPE_H
+#include <freetype/freetype.h>
 
 FT_Library  library;   /* handle to library     */
 FT_Face     face;      /* handle to face object */

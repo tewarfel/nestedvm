@@ -1,0 +1,343 @@
+*** ./upstream/Makefile~	2014-09-17 15:19:34.000000000 -0500
+--- ./upstream/Makefile	2014-09-25 10:16:17.000000000 -0500
+***************
+*** 154,183 ****
+  
+  
+  ## gcc ##############################################################################
+  
+! version_gcc = 3.3.6
+  
+  url_gcc-core = http://mirrors.kernel.org/gnu/gcc/gcc-$(version_gcc)/gcc-core-$(version_gcc).tar.gz
+  url_gcc-c++ = http://mirrors.kernel.org/gnu/gcc/gcc-$(version_gcc)/gcc-g++-$(version_gcc).tar.gz
+  url_gcc-g77 = http://mirrors.kernel.org/gnu/gcc/gcc-$(version_gcc)/gcc-g77-$(version_gcc).tar.gz
+  
+! patches_gcc = gcc-fixes.patch gcc-fdata-sections-bss.patch gcc-64bitclean.patch gcc-with-newer-version.patch
+  
+! configure_gcc = --target=mips-unknown-elf --disable-threads --with-gnu-ld --with-gnu-as --with-newlib=yes --enable-sjlj-exceptions --enable-languages="c"
+  configure_gcc_step2 = $(configure_gcc) --enable-languages="c,c++,f77"
+  
+  tasks/build_gcc: tasks/build_linker
+  
+! tasks/download_gcc: tasks/download_gcc-core tasks/download_gcc-c++ tasks/download_gcc-g77
+  	touch $@
+  
+  tasks/extract_gcc: tasks/download_gcc
+  	if [ -e $@ ]; then echo "Error: $@ exists. something isn't right"; false; else true; fi
+  	mkdir -p build
+! 	cd build && gzip -dc ../download/gcc-core-$(version_gcc).tar.gz | $(TAR) -xf -
+! 	cd build && gzip -dc ../download/gcc-g++-$(version_gcc).tar.gz | $(TAR) -xf -
+! 	cd build && gzip -dc ../download/gcc-g77-$(version_gcc).tar.gz | $(TAR) -xf -
+  	touch $@
+  
+  tasks/build_gcc_step2: tasks/patch_gcc tasks/build_libc
+  	mkdir -p $(usr)
+--- 154,191 ----
+  
+  
+  ## gcc ##############################################################################
+  
+! #version_gcc = 3.3.6
+! version_gcc = 4.8.3
+! 
+! url_gcc-all = http://mirrors.kernel.org/gnu/gcc/gcc-$(version_gcc)/gcc-$(version_gcc).tar.gz
+  
+  url_gcc-core = http://mirrors.kernel.org/gnu/gcc/gcc-$(version_gcc)/gcc-core-$(version_gcc).tar.gz
+  url_gcc-c++ = http://mirrors.kernel.org/gnu/gcc/gcc-$(version_gcc)/gcc-g++-$(version_gcc).tar.gz
+  url_gcc-g77 = http://mirrors.kernel.org/gnu/gcc/gcc-$(version_gcc)/gcc-g77-$(version_gcc).tar.gz
+  
+! #patches_gcc = gcc-fixes.patch gcc-fdata-sections-bss.patch gcc-64bitclean.patch gcc-with-newer-version.patch
+! patches_gcc = gcc.patch
+  
+! configure_gcc = --target=mips-unknown-elf --disable-threads --disable-libssp --with-gnu-ld --with-gnu-as --with-newlib=yes --enable-sjlj-exceptions --enable-languages="c"
+  configure_gcc_step2 = $(configure_gcc) --enable-languages="c,c++,f77"
+  
+  tasks/build_gcc: tasks/build_linker
+  
+! tasks/download_gcc: tasks/download_gcc-all
+  	touch $@
++ 	
++ #tasks/download_gcc: tasks/download_gcc-core tasks/download_gcc-c++ tasks/download_gcc-g77
++ #	touch $@
+  
+  tasks/extract_gcc: tasks/download_gcc
+  	if [ -e $@ ]; then echo "Error: $@ exists. something isn't right"; false; else true; fi
+  	mkdir -p build
+! #	cd build && gzip -dc ../download/gcc-core-$(version_gcc).tar.gz | $(TAR) -xf -
+! #	cd build && gzip -dc ../download/gcc-g++-$(version_gcc).tar.gz | $(TAR) -xf -
+! #	cd build && gzip -dc ../download/gcc-g77-$(version_gcc).tar.gz | $(TAR) -xf -
+! 	cd build && gzip -dc ../download/gcc-$(version_gcc).tar.gz | $(TAR) -xf -
+  	touch $@
+  
+  tasks/build_gcc_step2: tasks/patch_gcc tasks/build_libc
+  	mkdir -p $(usr)
+***************
+*** 223,240 ****
+  
+  
+  ## binutils ##############################################################################
+  
+! version_binutils = 2.14
+  url_binutils = ftp://ftp.gnu.org/gnu/binutils/binutils-$(version_binutils).tar.gz
+! patches_binutils = binutils-no64.patch binutils-nocompilein.patch
+  configure_binutils = --target=mips-unknown-elf
+  
+  ## newlib ##############################################################################
+  
+  version_newlib = 1.11.0
+  url_newlib = ftp://sources.redhat.com/pub/newlib/newlib-$(version_newlib).tar.gz
+  patches_newlib = newlib-mips.patch newlib-tzset.patch newlib-malloc.patch newlib-nomemcpy.patch newlib-unix.patch newlib-unistd.patch newlib-nestedvm-define.patch
+  configure_newlib = --enable-multilib --target=mips-unknown-elf
+  
+  tasks/build_newlib: tasks/build_gcc
+  
+--- 231,249 ----
+  
+  
+  ## binutils ##############################################################################
+  
+! version_binutils = 2.24
+  url_binutils = ftp://ftp.gnu.org/gnu/binutils/binutils-$(version_binutils).tar.gz
+! #patches_binutils = binutils-no64.patch binutils-nocompilein.patch
+! patches_binutils = binutils.patch
+  configure_binutils = --target=mips-unknown-elf
+  
+  ## newlib ##############################################################################
+  
+  version_newlib = 1.11.0
+  url_newlib = ftp://sources.redhat.com/pub/newlib/newlib-$(version_newlib).tar.gz
+  patches_newlib = newlib-mips.patch newlib-tzset.patch newlib-malloc.patch newlib-nomemcpy.patch newlib-unix.patch newlib-unistd.patch newlib-nestedvm-define.patch
+  configure_newlib = --enable-multilib --target=mips-unknown-elf
+  
+  tasks/build_newlib: tasks/build_gcc
+  
+***************
+*** 366,382 ****
+  	mips-unknown-elf-ar sr $(cross_root)/lib/libc.a $(patsubst %,../build/org/ibex/nestedvm/%.o, support support_aux)
+  	mips-unknown-elf-ar sr $(cross_root)/lib/single-float/libc.a $(patsubst %,../build/org/ibex/nestedvm/%.o, support support_aux)
+  	rm -f $(cross_root)/lib/crt0.o
+  	cp $(root)/build/org/ibex/nestedvm/crt0.o $(cross_root)/lib/crt0.o
+- 
+  	touch $@
+  
+  tasks/build_linker: tasks/build_binutils $(root)/src/org/ibex/nestedvm/linker.ld
+  	cp $(root)/src/org/ibex/nestedvm/linker.ld $(cross_root)/lib/ldscripts/nestedvm.ld
+  	for f in $(cross_root)/lib/ldscripts/elf32ebmip.*; do \
+  		rm -f "$$f"; \
+  		ln -s nestedvm.ld "$$f"; \
+  	done
+  	touch $@
+  
+  
+  
+--- 375,391 ----
+  	mips-unknown-elf-ar sr $(cross_root)/lib/libc.a $(patsubst %,../build/org/ibex/nestedvm/%.o, support support_aux)
+  	mips-unknown-elf-ar sr $(cross_root)/lib/single-float/libc.a $(patsubst %,../build/org/ibex/nestedvm/%.o, support support_aux)
+  	rm -f $(cross_root)/lib/crt0.o
+  	cp $(root)/build/org/ibex/nestedvm/crt0.o $(cross_root)/lib/crt0.o
+  	touch $@
+  
+  tasks/build_linker: tasks/build_binutils $(root)/src/org/ibex/nestedvm/linker.ld
+  	cp $(root)/src/org/ibex/nestedvm/linker.ld $(cross_root)/lib/ldscripts/nestedvm.ld
+  	for f in $(cross_root)/lib/ldscripts/elf32ebmip.*; do \
+  		rm -f "$$f"; \
+  		ln -s nestedvm.ld "$$f"; \
+  	done
++ 	cp $(upstream)/misc/crt0-override.spec $(cross_root)/lib/crt0-override.spec
+  	touch $@
+  
+  
+  
+*** ./src/org/ibex/nestedvm/Interpreter.java~	2014-09-17 15:19:34.000000000 -0500
+--- ./src/org/ibex/nestedvm/Interpreter.java	2014-09-24 15:45:06.000000000 -0500
+***************
+*** 649,657 ****
+          return 0;
+      }
+      
+      public int lookupSymbol(String name) {
+!         ELF.Symbol sym = symtab.getGlobalSymbol(name);
+          return sym == null ? -1 : sym.addr;
+      }
+      
+      private int gp;
+--- 649,657 ----
+          return 0;
+      }
+      
+      public int lookupSymbol(String name) {
+!         ELF.Symbol sym = symtab.getSymbol(name);
+          return sym == null ? -1 : sym.addr;
+      }
+      
+      private int gp;
+***************
+*** 679,688 ****
+          entryPoint = elf.header.entry;
+          
+          ELF.Symtab symtab = elf.getSymtab();
+          if(symtab == null) throw new IOException("No symtab in binary (did you strip it?)");
+!         userInfo = symtab.getGlobalSymbol("user_info");
+!         ELF.Symbol gpsym = symtab.getGlobalSymbol("_gp");
+          
+          if(gpsym == null) throw new IOException("NO _gp symbol!");
+          gp = gpsym.addr;
+          
+--- 679,688 ----
+          entryPoint = elf.header.entry;
+          
+          ELF.Symtab symtab = elf.getSymtab();
+          if(symtab == null) throw new IOException("No symtab in binary (did you strip it?)");
+!         userInfo = symtab.getSymbol("user_info");
+!         ELF.Symbol gpsym = symtab.getSymbol("_gp");
+          
+          if(gpsym == null) throw new IOException("NO _gp symbol!");
+          gp = gpsym.addr;
+          
+*** ./src/org/ibex/nestedvm/Compiler.java~	2014-09-17 15:19:34.000000000 -0500
+--- ./src/org/ibex/nestedvm/Compiler.java	2014-09-24 15:45:06.000000000 -0500
+***************
+*** 219,228 ****
+          ELF.Symtab symtab = elf.getSymtab();
+          if(symtab == null) throw new Exn("Binary has no symtab (did you strip it?)");
+          ELF.Symbol sym;
+          
+!         userInfo = symtab.getGlobalSymbol("user_info");
+!         gp = symtab.getGlobalSymbol("_gp");
+          if(gp == null) throw new Exn("no _gp symbol (did you strip the binary?)");   
+          
+          if(pruneCases) {
+              // Find all possible branches
+--- 219,228 ----
+          ELF.Symtab symtab = elf.getSymtab();
+          if(symtab == null) throw new Exn("Binary has no symtab (did you strip it?)");
+          ELF.Symbol sym;
+          
+!         userInfo = symtab.getSymbol("user_info");
+!         gp = symtab.getSymbol("_gp");
+          if(gp == null) throw new Exn("no _gp symbol (did you strip the binary?)");   
+          
+          if(pruneCases) {
+              // Find all possible branches
+*** ./src/tests/FTBench.c~	2014-09-17 15:19:34.000000000 -0500
+--- ./src/tests/FTBench.c	2014-09-24 15:45:06.000000000 -0500
+***************
+*** 1,5 ****
+--- 1,6 ----
+  #include <stdio.h>
++ #include <ft2build.h>
+  #include <freetype/freetype.h>
+  #include <fcntl.h>
+  #include <unistd.h>
+  
+*** ./Makefile~	2014-09-17 15:19:34.000000000 -0500
+--- ./Makefile	2014-09-24 15:45:06.000000000 -0500
+***************
+*** 17,25 ****
+  
+  #
+  # MIPS Settings (don't change these)
+  #
+! flags = -march=mips1
+  MIPS_CC = mips-unknown-elf-gcc
+  MIPS_CXX = mips-unknown-elf-g++
+  MIPS_G77 = mips-unknown-elf-g77
+  MIPS_PC = mips-unknown-elf-gpc
+--- 17,25 ----
+  
+  #
+  # MIPS Settings (don't change these)
+  #
+! flags = -march=mips1 -specs=$(cross_root)/lib/crt0-override.spec
+  MIPS_CC = mips-unknown-elf-gcc
+  MIPS_CXX = mips-unknown-elf-g++
+  MIPS_G77 = mips-unknown-elf-g77
+  MIPS_PC = mips-unknown-elf-gpc
+***************
+*** 32,42 ****
+  	-falign-functions=512 \
+  	-fno-rename-registers \
+  	-fno-schedule-insns \
+  	-fno-delayed-branch \
+! 	-freduce-all-givs
+  
+! MIPS_CFLAGS = $(mips_optflags) $(flags) -I. -Wall -Wno-unused -Werror
+  MIPS_CXXFLAGS = $(MIPS_CFLAGS)
+  MIPS_PCFLAGS = $(MIPS_CFLAGS) --big-endian
+  MIPS_LD = mips-unknown-elf-gcc
+  MIPS_LDFLAGS= $(flags) --static -Wl,--gc-sections
+--- 32,50 ----
+  	-falign-functions=512 \
+  	-fno-rename-registers \
+  	-fno-schedule-insns \
+  	-fno-delayed-branch \
+! #	-fno-merge-constants
+  
+! upstream = $(shell pwd)/upstream
+! root = $(shell dirname "`pwd`")
+! usr = $(upstream)/install
+! 
+! cross_root := $(usr)/mips-unknown-elf
+! 
+! #MIPS_CFLAGS = $(mips_optflags) $(flags) -I. -Wall -Wno-unused -Werror
+! MIPS_CFLAGS = $(mips_optflags) $(flags) -I. -Wall -Wno-unused 
+! #-mno-gpopt
+  MIPS_CXXFLAGS = $(MIPS_CFLAGS)
+  MIPS_PCFLAGS = $(MIPS_CFLAGS) --big-endian
+  MIPS_LD = mips-unknown-elf-gcc
+  MIPS_LDFLAGS= $(flags) --static -Wl,--gc-sections
+***************
+*** 324,332 ****
+  
+  #
+  # Freetype Stuff
+  #
+! FreeType_CFLAGS = -Iupstream/build/freetype/include
+  FreeType_LDFLAGS =  -Lupstream/build/freetype/objs -lfreetype
+  
+  FreeTypeDemoHelper_CFLAGS = $(FreeType_CFLAGS)
+  FreeTypeDemoHelper_LDFLAGS = $(FreeType_LDFLAGS)
+--- 332,340 ----
+  
+  #
+  # Freetype Stuff
+  #
+! FreeType_CFLAGS = -Iupstream/build/freetype/include -specs=$(cross_root)/lib/crt0-override.spec
+  FreeType_LDFLAGS =  -Lupstream/build/freetype/objs -lfreetype
+  
+  FreeTypeDemoHelper_CFLAGS = $(FreeType_CFLAGS)
+  FreeTypeDemoHelper_LDFLAGS = $(FreeType_LDFLAGS)
+***************
+*** 358,365 ****
+--- 366,374 ----
+  #
+  # Libjpeg
+  #
+  DJpeg_COMPILERFLAGS = -o onepage,pagesize=8m
++ 
+  build/tests/DJpeg.mips: $(tasks)/build_libjpeg
+  	@mkdir -p `dirname $@`
+  	cp upstream/build/libjpeg/djpeg $@
+  
+***************
+*** 447,455 ****
+  	else \
+  		echo "Run \"make check\" to get the MS True Type fonts for the MSPackBench test"; \
+  	fi
+  
+! speedtest: build/tests/SpeedTest.class build/tests/DJpeg.class build/tests/FTBench.class tmp/thebride_1280.jpg build/tests/MSPackBench.class
+  	@echo "Running DJpeg test..."
+  	@$(JAVA) -cp build tests.SpeedTest tests.DJpeg 10 -targa -outfile tmp/thebride_1280.tga tmp/thebride_1280.jpg
+  	@if [ -e tmp/mspack/Comic.TTF ]; then \
+  		echo "Running FTBench test..."; \
+--- 456,465 ----
+  	else \
+  		echo "Run \"make check\" to get the MS True Type fonts for the MSPackBench test"; \
+  	fi
+  
+! speedtest: build/tests/SpeedTest.class build/tests/DJpeg.class build/tests/FTBench.class tmp/thebride_1280.jpg 
+! ##build/tests/MSPackBench.class
+  	@echo "Running DJpeg test..."
+  	@$(JAVA) -cp build tests.SpeedTest tests.DJpeg 10 -targa -outfile tmp/thebride_1280.tga tmp/thebride_1280.jpg
+  	@if [ -e tmp/mspack/Comic.TTF ]; then \
+  		echo "Running FTBench test..."; \
