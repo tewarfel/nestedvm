@@ -50,6 +50,10 @@ Once the first install is rebooted, subsequent upgrades are immediately visible.
 
 
 Notes: 
+12/1/2014 - While the static nestedvm stuff works, the separate runtime compiler ("make compact_compiler.jar") does not yet build. This
+is probably not a major issue, as most folks are creating static C or Fortran libraries to link to other Java components.
+
+11/27/2014-
 I had some initial difficulty building GCC with, with an error message "cannot find liblto_plugin.so" 
 being caused by old remants of prior gcc builds.  I uninstalled all prior homebrew gcc/gcc-related stuff, delete the configuration caches,
 build directory contents, and the build file tokens in the upstream/tasks/ directory, and then did a "make clean", followed by "make".
@@ -58,7 +62,7 @@ Once I had all the old gcc stuff cleaned out, it would build.
 Makefile and upstream/Makefile both contain lines specifying Java version 1.8.  If you have the 1.7 JDK installed, 
 you can use that as well, just change the 1.8 to 1.7 in both places.
 
-This has also builds and runs under Yosemite (OSX 10.10.1)
+This also builds and runs under Yosemite (OSX 10.10.1) with Xcode 6.1, Homebrew, and Java 1.8 u25
  -Tom
 
 
