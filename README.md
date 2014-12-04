@@ -1,4 +1,4 @@
-nestedvm, ported to OSX 10.9, using gcc 4.9.3 and Java 1.8
+﻿nestedvm, ported to OSX 10.9, using gcc 4.9.3 and Java 1.8
 ========
 
 11/27/2014
@@ -10,6 +10,10 @@ so that it builds under Java 1.8.
 Thanks to Brian Alliet and Adam Megacz for their creation and for making it public, and most recently to Henry Wertz for his 
 recent set of extensive patches for gcc 4.8 + newlib-1.20 support and email assistance getting them to work.
 
+
+Thank also to jdstroy at github for his contributions.
+
+=========
 
 Building NestedVM under OSX 10.9:
 
@@ -42,7 +46,7 @@ Once the first install is rebooted, subsequent upgrades are immediately visible.
 
 12) cd to the install directory, type "make", then go get some coffee.  It takes awhile to download and compile all the pieces.
 
-13)  Once the first "make" completes, type "make nestedvm.jar"
+13) Once the first "make" completes, type "make nestedvm.jar"
 
 14) Verify with "make test", "make calltest", "make stringtest", etc. 
 
@@ -57,8 +61,10 @@ Makefile and upstream/Makefile both contain lines specifying Java version 1.8.  
 you can use that as well, just change the 1.8 to 1.7 in both places.
 
 This has also been built and runs under Yosemite (OSX 10.10)
+
  -Tom
 
+==================
 
 From the [original site](http://nestedvm.ibex.org/):
 

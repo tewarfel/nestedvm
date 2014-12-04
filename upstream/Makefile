@@ -257,7 +257,7 @@ url_linpack = http://www.math.iastate.edu/burkardt/f_src/linpack_bench/linpack_b
 
 ## zlib ##############################################################################
 
-version_zlib = 1.2.7
+version_zlib = 1.2.8
 url_zlib = http://www.zlib.net/zlib-$(version_zlib).tar.gz
 
 tasks/build_zlib: tasks/patch_zlib
@@ -301,13 +301,20 @@ tasks/build_libiconv: tasks/patch_libiconv tasks/build_libc
 ## gd ##############################################################################
  
 version_gd = 2.0.35
-url_gd = http://www.chipsnbytes.net/downloads/gd-$(version_gd).tar.gz
+#url_gd = http://www.chipsnbytes.net/downloads/gd-$(version_gd).tar.gz
+url_gd = http://www.google-desktop-for-linux-mirror.googlecode.com/files/gd-$(version_gd).tar.gz
 configure_gd = --disable-shared --host=mips-unknown-elf
  
 tasks/build_gd: tasks/build_freetype tasks/patch_gd tasks/build_libc
 	mkdir -p $(usr)
 	cd build/gd-$(version_gd) && \
 		CPPFLAGS=-I$(usr)/include/freetype2 LDFLAGS=-L$(usr)/lib ./configure --prefix=$(usr) $(configure_gd) && \
+<<<<<<< HEAD
+=======
+	 	$(MAKE) TARGET_CFLAGS="$(MIPS_CFLAGS)" && \
+		$(MAKE) install
+	touch $@
+>>>>>>> origin/master
 
 # expat ##############################################################################
 
@@ -423,9 +430,10 @@ tasks/build_freetype: tasks/patch_freetype tasks/build_libc
 
 ## boehm-gc ##############################################################################
 
-version_boehmgc = 6.3alpha2
-#url_boehmgc = http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc$(version_boehmgc).tar.gz
-url_boehmgc = http://nestedvm.ibex.org/upstream/gc$(version_boehmgc).tar.gz
+#version_boehmgc = 6.3alpha2
+version_boehmgc = 6.3alpha5
+url_boehmgc = http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc$(version_boehmgc).tar.gz
+#url_boehmgc = http://nestedvm.ibex.org/upstream/gc$(version_boehmgc).tar.gz
 patches_boehmgc = boehm-gc.patch
 
 tasks/extract_boehmgc: tasks/download_boehmgc
@@ -497,7 +505,8 @@ tasks/build_tex: tasks/build_tex_tangle tasks/build_gpc tasks/download_texinputs
 ## samba ##############################################################################
 
 version_samba = 3.0.4
-url_samba = http://us1.samba.org/samba/ftp/old-versions/samba-$(version_samba).tar.gz
+#url_samba = http://us1.samba.org/samba/ftp/old-versions/samba-$(version_samba).tar.gz
+url_samba = http://www.samba.org/samba/ftp/stable/samba-$(version_samba).tar.gz
 patches_samba = samba.patch
 
 tasks/build_samba: tasks/patch_samba
